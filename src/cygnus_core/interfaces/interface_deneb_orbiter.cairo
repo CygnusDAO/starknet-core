@@ -44,10 +44,6 @@ namespace IDenebOrbiter {
     }
 
     //
-    // @notice This function gets called in the constructor when collaterals get deployed (see the
-    //         `cygnus_collateral_control` contract). When the factory calls this contract to deploy a collateral, the
-    //         address of factory, borrowable, underlying and the shuttle id get stored in this contract temporarily,
-    //         and gets overriden on every deployment. This is to avoid having constructor call data on deployments
     // @return CollateralParameters A struct containing all the info of the collateral contract that this contract deploys
     //
     func get_collateral_parameters() -> (

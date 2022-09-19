@@ -1,0 +1,95 @@
+[
+    {
+        "members": [
+            {
+                "name": "factory",
+                "offset": 0,
+                "type": "felt"
+            },
+            {
+                "name": "collateral",
+                "offset": 1,
+                "type": "felt"
+            },
+            {
+                "name": "underlying",
+                "offset": 2,
+                "type": "felt"
+            },
+            {
+                "name": "shuttle_id",
+                "offset": 3,
+                "type": "felt"
+            },
+            {
+                "name": "base_rate_per_year",
+                "offset": 4,
+                "type": "felt"
+            },
+            {
+                "name": "multiplier_per_year",
+                "offset": 5,
+                "type": "felt"
+            }
+        ],
+        "name": "BorrowableParameters",
+        "size": 6,
+        "type": "struct"
+    },
+    {
+        "inputs": [],
+        "name": "borrowable_class_hash",
+        "outputs": [
+            {
+                "name": "BORROWABLE_CLASS_HASH",
+                "type": "felt"
+            }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+    },
+    {
+        "inputs": [],
+        "name": "get_borrowable_parameters",
+        "outputs": [
+            {
+                "name": "BorrowableParameters",
+                "type": "BorrowableParameters"
+            }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+    },
+    {
+        "inputs": [
+            {
+                "name": "collateral",
+                "type": "felt"
+            },
+            {
+                "name": "underlying",
+                "type": "felt"
+            },
+            {
+                "name": "shuttle_id",
+                "type": "felt"
+            },
+            {
+                "name": "base_rate_per_year",
+                "type": "felt"
+            },
+            {
+                "name": "multiplier_per_year",
+                "type": "felt"
+            }
+        ],
+        "name": "deploy_borrowable",
+        "outputs": [
+            {
+                "name": "borrowable",
+                "type": "felt"
+            }
+        ],
+        "type": "function"
+    }
+]

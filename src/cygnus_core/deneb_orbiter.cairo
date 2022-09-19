@@ -28,25 +28,27 @@
 
 // Cairo libraries
 from starkware.cairo.common.hash import hash2
+from starkware.cairo.common.math import assert_not_zero, assert_not_equal
+from starkware.cairo.common.bool import FALSE, TRUE
 from starkware.cairo.common.alloc import alloc
+from starkware.cairo.common.uint256 import Uint256, uint256_check
 from starkware.cairo.common.cairo_builtins import HashBuiltin
 
 // Starknet syscalls
 from starkware.starknet.common.syscalls import deploy
 
 // Utils
-// simple returns for get_caller_address, get_contract_address and get_block_timestamp
-from src.cygnus_core.utils.context import msg_sender
+from src.cygnus_core.utils.context import msg_sender, address_this
 
 // ════════════════════════════════════════════════════════════════════════════════════════════════════════════════════
 //     2. STRUCTS - INTERNAL
 // ════════════════════════════════════════════════════════════════════════════════════════════════════════════════════
 
-// / @custom:struct CollateralParameters Important parameters for the collateral contracts
-// / @custom:member factory The address of the Cygnus factory
-// / @custom:member underlying The address of the underlying LP Token
-// / @custom:member cygnusDai The address of the Cygnus borrow contract for this collateral
-// / @custom:member shuttleId The unique id of this lending pool (shared by borrowable)
+// @custom:struct CollateralParameters Important parameters for the collateral contracts
+// @custom:member factory The address of the Cygnus factory
+// @custom:member underlying The address of the underlying LP Token
+// @custom:member cygnusDai The address of the Cygnus borrow contract for this collateral
+// @custom:member shuttleId The unique id of this lending pool (shared by borrowable)
 struct CollateralParameters {
     factory: felt,
     borrowable: felt,
@@ -59,7 +61,7 @@ struct CollateralParameters {
 // ════════════════════════════════════════════════════════════════════════════════════════════════════════════════════
 
 // / @notice Collateral class hash for this orbiter
-const COLLATERAL_CLASS_HASH = 0x0049f7e95d735c1025e945fc02609a1e893de2146689a8e67d30be0ece8a6681;
+const COLLATERAL_CLASS_HASH = 0x073d92d977b264c5fe8d37d521c35ad90d6cd3c4bdf4266c681e664a72319e79;
 
 // / @return CollateralParameters Single storage slot for the struct of the collateral params being passed
 @storage_var
@@ -72,7 +74,7 @@ func Collateral_Parameters() -> (CollateralParameters: CollateralParameters) {
 
 //
 // @notice Each collateral orbiter should have a unique class hash, or else there is no point in creating new orbiters
-// @return COLLATERAL_CLASS_HASH The class hash of the collateral contract this orbiter deploys
+// @return COLLATERAL_CLASS_HASH The class hash of the collateral contract this contract deploys
 //
 @view
 func collateral_class_hash() -> (COLLATERAL_CLASS_HASH: felt) {
@@ -80,7 +82,7 @@ func collateral_class_hash() -> (COLLATERAL_CLASS_HASH: felt) {
 }
 
 // @notice This function gets called in the constructor when collaterals get deployed (see the
-//         `cygnus_collateral_control` contract). When the factory calls this orbiter to deploy a collateral, the
+//         `cygnus_collateral_control` contract). When the factory calls this contract to deploy a collateral, the
 //         address of factory, borrowable, underlying and the shuttle id get stored in this contract temporarily,
 //         and gets overriden on every deployment. This is to avoid having constructor call data on deployments
 // @return CollateralParameters A struct containing all the info of the collateral contract that this contract deploys
@@ -96,9 +98,8 @@ func get_collateral_parameters{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, r
 
 // @notice Deploys collateral pools
 // @param borrowable Address of this collateral`s borrowable
-// @param underlying Address of this collateral`s underlying asset (an LP Token)
+// @param underlying Address of this collateral`s underlying asset (an LP Token representing user`s liquidity)
 // @param shuttle_id Unique id of this lending pool shared by the borrowable
-// @return collateral The address of the collateral contract deployed
 @external
 func deploy_collateral{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
     borrowable: felt, underlying: felt, shuttle_id: felt
@@ -119,7 +120,7 @@ func deploy_collateral{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_che
     // ───────────────────────────────────────────────────
 
     // create salt of collateral address + factory address
-    let (salt) = hash2{hash_ptr=pedersen_ptr}(underlying, msg_sender());
+    let (salt) = hash2{hash_ptr=pedersen_ptr}(underlying, factory);
 
     // constructor calldata
     let constructor_calldata: felt* = alloc();

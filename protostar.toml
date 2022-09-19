@@ -5,6 +5,9 @@ protostar_version = "0.4.2"
 libs_path = "lib"
 
 ["protostar.contracts"]
-main = [
-    "src/main.cairo",
-]
+# 1. FACTORY
+giza_power_plant = ["src/cygnus_core/giza_power_plant.cairo"]
+
+# 2. ORBITERS
+albireo_orbiter = ["src/cygnus_core/albireo_orbiter.cairo"]
+deneb_orbiter = ["src/cygnus_core/deneb_orbiter.cairo"]

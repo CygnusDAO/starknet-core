@@ -80,14 +80,14 @@ from src.cygnus_core.utils.context import msg_sender, address_this
 // ════════════════════════════════════════════════════════════════════════════════════════════════════════════════════
 
 // @custom:struct Orbiter Official record of all orbiter addresses
-// @custom:member status Whether or not this orbiter is active
+// @custom:member initialized Whether or not this orbiter is active
 // @custom:member orbiter_id The unique ID of the orbiter pair
 // @custom:member orbiter_name A short string to easily identify what the orbiters were for (ie. dex name)
 // @custom:member albireo_orbiter The address of the borrowable deployer
 // @custom:member deneb_orbiter The address of the collateral deployer
 //
 struct CygnusOrbiter {
-    status: felt,
+    initialized: felt,
     orbiter_id: felt,
     orbiter_name: felt,
     albireo_orbiter: felt,
@@ -181,22 +181,17 @@ func NewAdmin(old_admin: felt, admin: felt) {
 
 // Addresses ─────────────────────────────────────────
 
-//
 // @notice Stored name of this contract (`Giza Power Plant`)
-//
 @storage_var
 func Name() -> (name: felt) {
 }
 
-//
 // @notice Stored address of the current factory admin. Only this address may assign a new admin, revoking their
 //         privileges.
-//
 @storage_var
 func Admin() -> (admin: felt) {
 }
 
-//
 // @notice Stored address of the user to be accepted by the current admin to be the new admin. The current Admin must
 //         set a pending admin first before the new admin can be stored
 //
@@ -220,9 +215,7 @@ func Pending_Dao_Reserves() -> (pending_dao_reserves: felt) {
 
 //
 // @notice Stored address of the LP Price oracle used by all collateral lending pools. The oracle address is checked
-//         during deployment of pools to assure it is active for the specific LP Token. If the oracle is not initialized
-//         for the LP Token the deployment will revert. Admin can set a new oracle address if we upgrade the oracle,
-//         affecting only future deployments
+//         during deployment of pools to assure it is active for the specific LP Token
 //
 @storage_var
 func Cygnus_Nebula_Oracle() -> (cygnus_nebula_oracle: felt) {
@@ -230,8 +223,7 @@ func Cygnus_Nebula_Oracle() -> (cygnus_nebula_oracle: felt) {
 
 //
 // @notice The stored address of the borrow token, in our case DAI. All borrowable pools get deployed with an underlying
-//         lending token and all collateral pools get deployed with an underlying LP Token. These underlyings are the
-//         only ERC20 tokens they accept. DAI is set at the factory for convinience
+//         lending token and all collateral pools get deployed with an underlying LP Token. 
 //
 @storage_var
 func Dai() -> (dai: felt) {
@@ -618,42 +610,6 @@ func board_shuttle{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_p
 
 // ─────────────────────────────────────────────────── External ───────────────────────────────────────────────────────
 
-//
-// @notice initializes borrowable and collateral deployers and assigns them a unique ID to use for deployment
-// @param name Name to identify what these deployers are for (ie Jediswap, Sithswap, etc.)
-// @param albireo_orbiter Address of the borrowable deployer
-// @param deneb_orbiter Address of the collateral deployer
-//
-@external
-func initialize_orbiters{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
-    name: felt, albireo_orbiter: felt, deneb_orbiter: felt
-) {
-    let (total_orbiters: felt) = Total_Orbiters.read();
-
-    // reverts if orbiters already exist
-    check_orbiters_internal(albireo_orbiter, deneb_orbiter);
-
-    // make orbiter struct
-    tempvar orbiter = CygnusOrbiter(
-        status=1,
-        orbiter_id=total_orbiters,
-        orbiter_name=name,
-        albireo_orbiter=albireo_orbiter,
-        deneb_orbiter=deneb_orbiter,
-        );
-
-    // store orbiters in orbiters mapping - mapping(orbiter_id => Orbiter)
-    Orbiters.write(total_orbiters, orbiter);
-
-    // add counter
-    Total_Orbiters.write(total_orbiters + 1);
-
-    // EVENT: InitializeOrbiters
-    InitializeOrbiters.emit(orbiter);
-
-    return ();
-}
-
 // @notice Deploys a new lending pool, consists of 5 phases:
 //         Phase 1: Orbiter check
 //                  - Orbiters (deployers) are active and usable
@@ -699,7 +655,7 @@ func deploy_shuttle{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_
     //
     with_attr error_message("cygnus_factory__orbiters_are_inactive({orbiter_id})") {
         // avoid deploying if orbiters are inactive or dont exist
-        assert_not_zero(orbiter.status);
+        assert orbiter.initialized = TRUE;
     }
 
     // ─────────────────────────────── Phase 2 ───────────────────────────────
@@ -761,14 +717,16 @@ func deploy_shuttle{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_
     let (cygnus_oracle: felt) = Cygnus_Nebula_Oracle.read();
 
     // check if oracle is initialized for this LP Token, reverts if not initialized on next exec call
-    let (_, initialized: felt, _, _) = ICygnusNebulaOracle.get_price_oracle(
+    let (_, oracle_initialized: felt, _, _) = ICygnusNebulaOracle.get_price_oracle(
         contract_address=cygnus_oracle, lp_token_pair=lp_token_pair
     );
 
+    //
     // ERROR: lp_token_pair_not_supported
+    //
     with_attr error_message("cygnus_factory__lp_token_pair_not_supported({lp_token_pair})") {
         // avoid deploying if oracle is not initialized
-        assert_not_zero(initialized);
+        assert oracle_initialized = TRUE;
     }
 
     // ─────────────────────────────── Phase 5 ───────────────────────────────
@@ -782,20 +740,61 @@ func deploy_shuttle{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_
         orbiter=orbiter,
         );
 
-    // write temp lending pool to Shuttles mapping
+    // write lending pool to Shuttles mapping
     Shuttles.write(lp_token_pair, orbiter.orbiter_id, shuttle);
 
-    // write temp lending pool to Shuttles array
+    // "push" lending pool to Shuttles array
     All_Shuttles.write(shuttle.shuttle_id, shuttle);
 
+    //
     // EVENT: ShuttleDeploy
+    //
     ShuttleDeploy.emit(shuttle);
 
     // unlock
     ReentrancyGuard._end();
 
-    return (borrowable, collateral);
+    // return deployed contracts addresses
+    return (borrowable=borrowable, collateral=collateral);
 }
+
+//
+// @notice initializes borrowable and collateral deployers and assigns them a unique ID to use for deployment
+// @param name Name to identify what these deployers are for (ie Jediswap, Sithswap, etc.)
+// @param albireo_orbiter Address of the borrowable deployer
+// @param deneb_orbiter Address of the collateral deployer
+//
+@external
+func initialize_orbiters{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
+    name: felt, albireo_orbiter: felt, deneb_orbiter: felt
+) {
+    // total orbiters length
+    let (total_orbiters: felt) = Total_Orbiters.read();
+
+    // reverts if orbiters already exist
+    check_orbiters_internal(albireo_orbiter, deneb_orbiter);
+
+    // make orbiter struct
+    tempvar orbiter = CygnusOrbiter(
+        initialized=TRUE,
+        orbiter_id=total_orbiters,
+        orbiter_name=name,
+        albireo_orbiter=albireo_orbiter,
+        deneb_orbiter=deneb_orbiter,
+        );
+
+    // store orbiters in orbiters mapping - mapping(orbiter_id => Orbiter)
+    Orbiters.write(total_orbiters, orbiter);
+
+    // add counter
+    Total_Orbiters.write(total_orbiters + 1);
+
+    // EVENT: InitializeOrbiters
+    InitializeOrbiters.emit(orbiter);
+
+    return ();
+}
+
 
 //
 // @notice Admin only 👽
@@ -817,7 +816,7 @@ func set_pending_admin{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_che
     let (admin: felt) = Admin.read();
 
     // ERROR: admin_already_set
-    with_attr error_message("cygnus_factory__admin_already_set()") {
+    with_attr error_message("cygnus_factory__admin_already_set({new_pending_admin})") {
         assert_not_equal(new_pending_admin, admin);
     }
 

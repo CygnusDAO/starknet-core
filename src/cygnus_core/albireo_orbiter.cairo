@@ -28,14 +28,17 @@
 
 // Cairo libraries
 from starkware.cairo.common.hash import hash2
+from starkware.cairo.common.math import assert_not_zero, assert_not_equal
+from starkware.cairo.common.bool import FALSE, TRUE
 from starkware.cairo.common.alloc import alloc
+from starkware.cairo.common.uint256 import Uint256, uint256_check
 from starkware.cairo.common.cairo_builtins import HashBuiltin
 
 // Starknet syscalls
 from starkware.starknet.common.syscalls import deploy
 
 // Utils
-from src.cygnus_core.utils.context import msg_sender
+from src.cygnus_core.utils.context import msg_sender, address_this
 
 // ════════════════════════════════════════════════════════════════════════════════════════════════════════════════════
 //     2. STRUCTS - INTERNAL
@@ -60,7 +63,7 @@ struct BorrowableParameters {
 // ════════════════════════════════════════════════════════════════════════════════════════════════════════════════════
 
 // @notice borrowable contract class hash
-const BORROWABLE_CLASS_HASH = 0x0078e0b28be067200188de1424c4479430433a824252c72fadf9e81dd066e3b6;
+const BORROWABLE_CLASS_HASH = 0x04e64614320b42b171f6e4a54372ef0b6c2aafbf804674ca6cc050491f9c322c;
 
 // @return CollateralParameters Single storage slot for the struct of the collateral params being passed
 @storage_var
@@ -71,15 +74,15 @@ func Borrowable_Parameters() -> (BorrowableParameters: BorrowableParameters) {
 //     5. STORAGE ACCESSORS - EXTERNAL
 // ════════════════════════════════════════════════════════════════════════════════════════════════════════════════════
 
-// @notice Each borrowable orbiter should have a unique class hash, or else there is no point in creating new orbiters
-// @return BORROWABLE_CLASS_HASH The class hash of the borrowable contract this orbiter deploys
+// @notice Each collateral orbiter should have a unique class hash, or else there is no point in creating new orbiters
+// @return BORROWABLE_CLASS_HASH The class hash of the collateral contract this contract deploys
 @view
 func borrowable_class_hash() -> (BORROWABLE_CLASS_HASH: felt) {
     return (BORROWABLE_CLASS_HASH=BORROWABLE_CLASS_HASH);
 }
 
 // @notice This function gets called in the constructor when borrowables get deployed (see the
-//         `cygnus_borrow_control` contract). When the factory calls this orbiter to deploy a borrowable, the
+//         `cygnus_borrow_control` contract). When the factory calls this contract to deploy a borrowable, the
 //         address of factory, collateral, underlying and the shuttle id get stored in this contract temporarily,
 //         and gets overriden on every deployment. This is to avoid having constructor call data on deployments
 // @return BorrowableParameters A struct containing all the info of the borrowable contract that this contract deploys
@@ -93,7 +96,7 @@ func get_borrowable_parameters{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, r
 //     7. NON-CONSTANT FUNCTIONS - EXTERNAL
 // ════════════════════════════════════════════════════════════════════════════════════════════════════════════════════
 
-// @notice Deploys borrowable pools
+// @notice Deploys collateral pools
 // @param collateral Address of this borrowable`s collateral
 // @param underlying Address of this borrowable`s underlying asset (DAI)
 // @param shuttle_id Unique id of this lending pool shared by the collateral
@@ -127,7 +130,7 @@ func deploy_borrowable{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_che
     // ───────────────────────────────────────────────────
 
     // create salt of collateral address + factory address
-    let (salt) = hash2{hash_ptr=pedersen_ptr}(collateral, msg_sender());
+    let (salt) = hash2{hash_ptr=pedersen_ptr}(collateral, factory);
 
     // constructor calldata
     let constructor_calldata: felt* = alloc();

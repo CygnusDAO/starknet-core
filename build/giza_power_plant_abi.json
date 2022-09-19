@@ -1,0 +1,444 @@
+[
+    {
+        "members": [
+            {
+                "name": "launched",
+                "offset": 0,
+                "type": "felt"
+            },
+            {
+                "name": "shuttle_id",
+                "offset": 1,
+                "type": "felt"
+            },
+            {
+                "name": "borrowable",
+                "offset": 2,
+                "type": "felt"
+            },
+            {
+                "name": "collateral",
+                "offset": 3,
+                "type": "felt"
+            },
+            {
+                "name": "orbiter",
+                "offset": 4,
+                "type": "CygnusOrbiter"
+            }
+        ],
+        "name": "CygnusShuttle",
+        "size": 9,
+        "type": "struct"
+    },
+    {
+        "members": [
+            {
+                "name": "initialized",
+                "offset": 0,
+                "type": "felt"
+            },
+            {
+                "name": "orbiter_id",
+                "offset": 1,
+                "type": "felt"
+            },
+            {
+                "name": "orbiter_name",
+                "offset": 2,
+                "type": "felt"
+            },
+            {
+                "name": "albireo_orbiter",
+                "offset": 3,
+                "type": "felt"
+            },
+            {
+                "name": "deneb_orbiter",
+                "offset": 4,
+                "type": "felt"
+            }
+        ],
+        "name": "CygnusOrbiter",
+        "size": 5,
+        "type": "struct"
+    },
+    {
+        "data": [
+            {
+                "name": "shuttle",
+                "type": "CygnusShuttle"
+            }
+        ],
+        "keys": [],
+        "name": "ShuttleDeploy",
+        "type": "event"
+    },
+    {
+        "data": [
+            {
+                "name": "orbiter",
+                "type": "CygnusOrbiter"
+            }
+        ],
+        "keys": [],
+        "name": "InitializeOrbiters",
+        "type": "event"
+    },
+    {
+        "data": [
+            {
+                "name": "old_admin",
+                "type": "felt"
+            },
+            {
+                "name": "new_admin",
+                "type": "felt"
+            }
+        ],
+        "keys": [],
+        "name": "NewCygnusAdmin",
+        "type": "event"
+    },
+    {
+        "data": [
+            {
+                "name": "old_dao_reserves",
+                "type": "felt"
+            },
+            {
+                "name": "new_dao_reserves",
+                "type": "felt"
+            }
+        ],
+        "keys": [],
+        "name": "NewDaoReserves",
+        "type": "event"
+    },
+    {
+        "data": [
+            {
+                "name": "old_price_oracle",
+                "type": "felt"
+            },
+            {
+                "name": "new_price_oracle",
+                "type": "felt"
+            }
+        ],
+        "keys": [],
+        "name": "NewCygnusNebulaOracle",
+        "type": "event"
+    },
+    {
+        "data": [
+            {
+                "name": "pending_admin",
+                "type": "felt"
+            },
+            {
+                "name": "admin",
+                "type": "felt"
+            }
+        ],
+        "keys": [],
+        "name": "NewPendingAdmin",
+        "type": "event"
+    },
+    {
+        "data": [
+            {
+                "name": "old_admin",
+                "type": "felt"
+            },
+            {
+                "name": "admin",
+                "type": "felt"
+            }
+        ],
+        "keys": [],
+        "name": "NewAdmin",
+        "type": "event"
+    },
+    {
+        "inputs": [
+            {
+                "name": "admin",
+                "type": "felt"
+            },
+            {
+                "name": "dao_reserves",
+                "type": "felt"
+            },
+            {
+                "name": "dai",
+                "type": "felt"
+            },
+            {
+                "name": "native_token",
+                "type": "felt"
+            },
+            {
+                "name": "cygnus_nebula_oracle",
+                "type": "felt"
+            }
+        ],
+        "name": "constructor",
+        "outputs": [],
+        "type": "constructor"
+    },
+    {
+        "inputs": [],
+        "name": "name",
+        "outputs": [
+            {
+                "name": "name",
+                "type": "felt"
+            }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+    },
+    {
+        "inputs": [],
+        "name": "admin",
+        "outputs": [
+            {
+                "name": "admin",
+                "type": "felt"
+            }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+    },
+    {
+        "inputs": [],
+        "name": "pending_admin",
+        "outputs": [
+            {
+                "name": "pending_admin",
+                "type": "felt"
+            }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+    },
+    {
+        "inputs": [],
+        "name": "dao_reserves",
+        "outputs": [
+            {
+                "name": "dao_reserves",
+                "type": "felt"
+            }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+    },
+    {
+        "inputs": [],
+        "name": "pending_dao_reserves",
+        "outputs": [
+            {
+                "name": "pending_dao_reserves",
+                "type": "felt"
+            }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+    },
+    {
+        "inputs": [],
+        "name": "cygnus_nebula_oracle",
+        "outputs": [
+            {
+                "name": "cygnus_nebula_oracle",
+                "type": "felt"
+            }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+    },
+    {
+        "inputs": [],
+        "name": "dai",
+        "outputs": [
+            {
+                "name": "dai",
+                "type": "felt"
+            }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+    },
+    {
+        "inputs": [],
+        "name": "native_token",
+        "outputs": [
+            {
+                "name": "native_token",
+                "type": "felt"
+            }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+    },
+    {
+        "inputs": [
+            {
+                "name": "orbiter_id",
+                "type": "felt"
+            }
+        ],
+        "name": "all_orbiters",
+        "outputs": [
+            {
+                "name": "orbiter",
+                "type": "CygnusOrbiter"
+            }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+    },
+    {
+        "inputs": [],
+        "name": "total_orbiters",
+        "outputs": [
+            {
+                "name": "total_orbiters",
+                "type": "felt"
+            }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+    },
+    {
+        "inputs": [],
+        "name": "total_shuttles",
+        "outputs": [
+            {
+                "name": "total_shuttles",
+                "type": "felt"
+            }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+    },
+    {
+        "inputs": [
+            {
+                "name": "lp_token_pair",
+                "type": "felt"
+            },
+            {
+                "name": "orbiter_id",
+                "type": "felt"
+            }
+        ],
+        "name": "get_shuttle",
+        "outputs": [
+            {
+                "name": "shuttle",
+                "type": "CygnusShuttle"
+            }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+    },
+    {
+        "inputs": [
+            {
+                "name": "shuttle_id",
+                "type": "felt"
+            }
+        ],
+        "name": "all_shuttles",
+        "outputs": [
+            {
+                "name": "shuttle",
+                "type": "CygnusShuttle"
+            }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+    },
+    {
+        "inputs": [
+            {
+                "name": "lp_token_pair",
+                "type": "felt"
+            },
+            {
+                "name": "orbiter_id",
+                "type": "felt"
+            },
+            {
+                "name": "base_rate_per_year",
+                "type": "felt"
+            },
+            {
+                "name": "multiplier_per_year",
+                "type": "felt"
+            }
+        ],
+        "name": "deploy_shuttle",
+        "outputs": [
+            {
+                "name": "borrowable",
+                "type": "felt"
+            },
+            {
+                "name": "collateral",
+                "type": "felt"
+            }
+        ],
+        "type": "function"
+    },
+    {
+        "inputs": [
+            {
+                "name": "name",
+                "type": "felt"
+            },
+            {
+                "name": "albireo_orbiter",
+                "type": "felt"
+            },
+            {
+                "name": "deneb_orbiter",
+                "type": "felt"
+            }
+        ],
+        "name": "initialize_orbiters",
+        "outputs": [],
+        "type": "function"
+    },
+    {
+        "inputs": [
+            {
+                "name": "new_pending_admin",
+                "type": "felt"
+            }
+        ],
+        "name": "set_pending_admin",
+        "outputs": [],
+        "type": "function"
+    },
+    {
+        "inputs": [],
+        "name": "set_admin",
+        "outputs": [],
+        "type": "function"
+    },
+    {
+        "inputs": [
+            {
+                "name": "new_cygnus_oracle",
+                "type": "felt"
+            }
+        ],
+        "name": "set_new_cygnus_oracle",
+        "outputs": [],
+        "type": "function"
+    }
+]
