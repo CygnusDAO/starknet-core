@@ -2,7 +2,7 @@
 
 ![image](https://user-images.githubusercontent.com/97303883/191099232-7a3ea966-3e44-43cc-b2e3-5e83b725f9fb.png)
 
-# Deployed Collateral and Borrow contracts with this factory:
+# Deployed on Alpha-Goerli:
 
 
 <p align="left">
