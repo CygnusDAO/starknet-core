@@ -20,7 +20,7 @@ Example of leverage transaction between borrowable and collateral: https://testn
 
 # Cygnus Finance
 
-Cygnus is a stablecoin lending protocol. It is a non-custodial liquidity market protocol, where users can participate as lenders by supplying stablecoins or as borrowers by supplying their LP Tokens. Each lending pool is connected to a DEX (Jediswap, Sithswap, etc.), as such we follow the factory pattern to deploy to all the dexes possible on Starknet.
+Cygnus is a stablecoin lending and margin trading protocol. It is a non-custodial liquidity market protocol, where users can participate as lenders by supplying stablecoins or as borrowers by supplying their LP Tokens. Each lending pool is connected to a DEX (Jediswap, Sithswap, etc.), as such we follow the factory pattern to deploy to all the dexes possible on Starknet.
 
 The factory contract makes use of 2 deployer contracts called "Orbiters" which are in charge of deploying a borrowable contract (for stablecoins) and a collateral contract (for LP Tokens), making 1 lending pool. This repository holds 3 main contracts:
 
