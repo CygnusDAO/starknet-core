@@ -16,7 +16,7 @@ Borrowable: https://testnet.starkscan.co/contract/0x1e2a5c8a5c31caac0a471b2e9af7
 Collateral: https://testnet.starkscan.co/contract/0x02dc069e14a94ceb2fe924fd1ba9bb574d31de02f1c382adf1d1514d38c9524d
 </p>
 
-Example of leverage transaction between the borrowable and collateral using Commercium aggregator: https://testnet.starkscan.co/tx/0x0797eeee4d14bc26b203288d8bc21e9fc56955d9d4fedca41f70afb6fdf06839#overview
+Example of leverage transaction between borrowable and collateral: https://testnet.starkscan.co/tx/0x0797eeee4d14bc26b203288d8bc21e9fc56955d9d4fedca41f70afb6fdf06839#overview
 
 # Cygnus Finance
 
