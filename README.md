@@ -2,8 +2,7 @@
 
 ![image](https://user-images.githubusercontent.com/97303883/191099232-7a3ea966-3e44-43cc-b2e3-5e83b725f9fb.png)
 
-# Deployed on Alpha-Goerli:
-
+# Deployed and tested on Alpha-Goerli:
 
 <p align="left">
 Factory: https://goerli.voyager.online/contract/0x02e5e604b8693423843b009f6d6d7164c5ff3e190ed54875d396d068b0e4fb2b
@@ -16,6 +15,8 @@ Borrowable: https://goerli.voyager.online/contract/0x7fc7944fd5179e10bc607aa97cf
 
 Collateral: https://goerli.voyager.online/contract/0x0105d3c64059e236fc85a2c6279ea7c48d654574b1b35769ed3fc9a8b9424663
 </p>
+
+Example of leverage transaction: https://testnet.starkscan.co/tx/0x0797eeee4d14bc26b203288d8bc21e9fc56955d9d4fedca41f70afb6fdf06839#overview
 
 # Cygnus Finance
 
