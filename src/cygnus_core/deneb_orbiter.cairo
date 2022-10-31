@@ -60,25 +60,36 @@ struct CollateralParameters {
 //     3. STORAGE - INTERNAL
 // ════════════════════════════════════════════════════════════════════════════════════════════════════════════════════
 
-// / @notice Collateral class hash for this orbiter
-const COLLATERAL_CLASS_HASH = 0x073d92d977b264c5fe8d37d521c35ad90d6cd3c4bdf4266c681e664a72319e79;
-
-// / @return CollateralParameters Single storage slot for the struct of the collateral params being passed
+// @return CollateralParameters Single storage slot for the struct of the collateral params being passed
 @storage_var
-func Collateral_Parameters() -> (CollateralParameters: CollateralParameters) {
+func Collateral_Parameters() -> (collateral_parameters: CollateralParameters) {
 }
+
+@storage_var
+func Collateral_Class_Hash() -> (collateral_class_hash : felt){
+}
+
+// ════════════════════════════════════════════════════════════════════════════════════════════════════════════════════
+//     4. CONSTRUCTOR
+// ════════════════════════════════════════════════════════════════════════════════════════════════════════════════════
+
+@constructor
+func constructor{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(class_hash : felt) { 
+  Collateral_Class_Hash.write(class_hash);
+  return ();
+}
+
+
 
 // ════════════════════════════════════════════════════════════════════════════════════════════════════════════════════
 //     5. STORAGE ACCESSORS - EXTERNAL
 // ════════════════════════════════════════════════════════════════════════════════════════════════════════════════════
 
-//
 // @notice Each collateral orbiter should have a unique class hash, or else there is no point in creating new orbiters
 // @return COLLATERAL_CLASS_HASH The class hash of the collateral contract this contract deploys
-//
 @view
-func collateral_class_hash() -> (COLLATERAL_CLASS_HASH: felt) {
-    return (COLLATERAL_CLASS_HASH=COLLATERAL_CLASS_HASH);
+func collateral_class_hash{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}() -> (collateral_class_hash: felt) {
+    return Collateral_Class_Hash.read();
 }
 
 // @notice This function gets called in the constructor when collaterals get deployed (see the
@@ -88,7 +99,7 @@ func collateral_class_hash() -> (COLLATERAL_CLASS_HASH: felt) {
 // @return CollateralParameters A struct containing all the info of the collateral contract that this contract deploys
 @view
 func get_collateral_parameters{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
-    ) -> (CollateralParameters: CollateralParameters) {
+    ) -> (collateral_parameters: CollateralParameters) {
     return Collateral_Parameters.read();
 }
 
@@ -104,30 +115,40 @@ func get_collateral_parameters{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, r
 func deploy_collateral{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
     borrowable: felt, underlying: felt, shuttle_id: felt
 ) -> (collateral: felt) {
-    // ───────────────────────────────────────────────────
-
-    // address of the msg.sender (ie cygnus factory address)
+    //
+    // 1. Address of the msg.sender (ie cygnus factory address)
+    //
     let factory: felt = msg_sender();
 
-    // build collateral params for this pool
+    //
+    // 2. Build collateral parameters passed from factory with borrowable address
+    //
     let params = CollateralParameters(
         factory=factory, borrowable=borrowable, underlying=underlying, shuttle_id=shuttle_id
     );
 
-    // write params to storage to retrieve in constructors
+    //
+    // 3. Write params to storage to retrieve in constructors
+    //
     Collateral_Parameters.write(params);
 
     // ───────────────────────────────────────────────────
 
-    // create salt of collateral address + factory address
+    //
+    // 4. Deploy collateral
+    //
+
+    // Create salt of LP Token address + factory address (msg_sender)
     let (salt) = hash2{hash_ptr=pedersen_ptr}(underlying, factory);
 
-    // constructor calldata
+    // Constructor calldata (none)
     let constructor_calldata: felt* = alloc();
 
-    // deploy collateral pool
+    let (collateral_class_hash : felt) = Collateral_Class_Hash.read();
+
+    // Deploy collateral contract
     let (collateral: felt) = deploy(
-        class_hash=COLLATERAL_CLASS_HASH,
+        class_hash=collateral_class_hash,
         contract_address_salt=salt,
         constructor_calldata_size=0,
         constructor_calldata=constructor_calldata,

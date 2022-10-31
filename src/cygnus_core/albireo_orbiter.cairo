@@ -63,12 +63,26 @@ struct BorrowableParameters {
 // ════════════════════════════════════════════════════════════════════════════════════════════════════════════════════
 
 // @notice borrowable contract class hash
-const BORROWABLE_CLASS_HASH = 0x04e64614320b42b171f6e4a54372ef0b6c2aafbf804674ca6cc050491f9c322c;
+@storage_var
+func Borrowable_Class_Hash() -> (borrowable_class_hash: felt) {
+}
 
 // @return CollateralParameters Single storage slot for the struct of the collateral params being passed
 @storage_var
-func Borrowable_Parameters() -> (BorrowableParameters: BorrowableParameters) {
+func Borrowable_Parameters() -> (borrowable_parameters: BorrowableParameters) {
 }
+
+// ════════════════════════════════════════════════════════════════════════════════════════════════════════════════════
+//     4. CONSTRUCTOR
+// ════════════════════════════════════════════════════════════════════════════════════════════════════════════════════
+
+// @notice constructrs the Borrow deployer
+@constructor
+func constructor{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(class_hash : felt) { 
+  Borrowable_Class_Hash.write(class_hash);
+  return ();
+}
+
 
 // ════════════════════════════════════════════════════════════════════════════════════════════════════════════════════
 //     5. STORAGE ACCESSORS - EXTERNAL
@@ -77,8 +91,10 @@ func Borrowable_Parameters() -> (BorrowableParameters: BorrowableParameters) {
 // @notice Each collateral orbiter should have a unique class hash, or else there is no point in creating new orbiters
 // @return BORROWABLE_CLASS_HASH The class hash of the collateral contract this contract deploys
 @view
-func borrowable_class_hash() -> (BORROWABLE_CLASS_HASH: felt) {
-    return (BORROWABLE_CLASS_HASH=BORROWABLE_CLASS_HASH);
+func borrowable_class_hash{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}() -> (
+    borrowable_class_hash: felt
+) {
+    return Borrowable_Class_Hash.read();
 }
 
 // @notice This function gets called in the constructor when borrowables get deployed (see the
@@ -88,7 +104,7 @@ func borrowable_class_hash() -> (BORROWABLE_CLASS_HASH: felt) {
 // @return BorrowableParameters A struct containing all the info of the borrowable contract that this contract deploys
 @view
 func get_borrowable_parameters{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
-    ) -> (BorrowableParameters: BorrowableParameters) {
+    ) -> (borrowable_parameters: BorrowableParameters) {
     return Borrowable_Parameters.read();
 }
 
@@ -109,35 +125,46 @@ func deploy_borrowable{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_che
     base_rate_per_year: felt,
     multiplier_per_year: felt,
 ) -> (borrowable: felt) {
-    // ───────────────────────────────────────────────────
-
-    // address of the msg.sender (ie cygnus factory address)
+    //
+    // 1. Address of the msg.sender (ie cygnus factory address)
+    //
     let factory: felt = msg_sender();
 
-    // build collateral params for this pool
+    //
+    // 2. Build borrowable parameters passed from factory with collateral address
+    //
     let params = BorrowableParameters(
         factory=factory,
         collateral=collateral,
         underlying=underlying,
         shuttle_id=shuttle_id,
         base_rate_per_year=base_rate_per_year,
-        multiplier_per_year=multiplier_per_year
+        multiplier_per_year=multiplier_per_year,
     );
 
-    // write params to storage to retrieve in constructors
+    //
+    // 3. Write params to storage to retrieve in constructors
+    //
     Borrowable_Parameters.write(params);
 
     // ───────────────────────────────────────────────────
 
-    // create salt of collateral address + factory address
+    //
+    // 4. Deploy collateral
+    //
+
+    // Create salt of Collateral address + factory address (msg_sender)
     let (salt) = hash2{hash_ptr=pedersen_ptr}(collateral, factory);
 
-    // constructor calldata
+    // Get class Hash
+    let (borrowable_class_hash: felt) = Borrowable_Class_Hash.read();
+
+    // Constructor calldata (none)
     let constructor_calldata: felt* = alloc();
 
-    // deploy lending pool
+    // Deploy borrowable contract
     let (borrowable: felt) = deploy(
-        class_hash=BORROWABLE_CLASS_HASH,
+        class_hash=borrowable_class_hash,
         contract_address_salt=salt,
         constructor_calldata_size=0,
         constructor_calldata=constructor_calldata,

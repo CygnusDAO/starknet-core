@@ -141,7 +141,7 @@ namespace SafeUint256 {
         a: Uint256, b: Uint256, c: Uint256
     ) -> (d: Uint256) {
         let (addition: Uint256) = add(a, b);
-        let (d: Uint256) = sub_lt(addition, c);
+        let (d: Uint256) = sub_le(addition, c);
         return (d=d);
     }
 }

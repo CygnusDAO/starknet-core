@@ -79,6 +79,7 @@ from src.cygnus_core.utils.context import msg_sender, address_this
 //     1. STRUCTS & CONSTANTS - INTERNAL
 // ════════════════════════════════════════════════════════════════════════════════════════════════════════════════════
 
+//
 // @custom:struct Orbiter Official record of all orbiter addresses
 // @custom:member initialized Whether or not this orbiter is active
 // @custom:member orbiter_id The unique ID of the orbiter pair
@@ -107,7 +108,7 @@ struct CygnusShuttle {
     shuttle_id: felt,
     borrowable: felt,
     collateral: felt,
-    orbiter: CygnusOrbiter,
+    orbiter_id: felt,
 }
 
 // ════════════════════════════════════════════════════════════════════════════════════════════════════════════════════
@@ -181,17 +182,22 @@ func NewAdmin(old_admin: felt, admin: felt) {
 
 // Addresses ─────────────────────────────────────────
 
+//
 // @notice Stored name of this contract (`Giza Power Plant`)
+//
 @storage_var
 func Name() -> (name: felt) {
 }
 
+//
 // @notice Stored address of the current factory admin. Only this address may assign a new admin, revoking their
 //         privileges.
+//
 @storage_var
 func Admin() -> (admin: felt) {
 }
 
+//
 // @notice Stored address of the user to be accepted by the current admin to be the new admin. The current Admin must
 //         set a pending admin first before the new admin can be stored
 //
@@ -223,7 +229,7 @@ func Cygnus_Nebula_Oracle() -> (cygnus_nebula_oracle: felt) {
 
 //
 // @notice The stored address of the borrow token, in our case DAI. All borrowable pools get deployed with an underlying
-//         lending token and all collateral pools get deployed with an underlying LP Token. 
+//         lending token and all collateral pools get deployed with an underlying LP Token.
 //
 @storage_var
 func Dai() -> (dai: felt) {
@@ -405,7 +411,7 @@ func pending_dao_reserves{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_
 }
 
 //
-// @return cygnus_price_oracle The address of the LP price oracle used by lending pools
+// @return cygnus_nebula_oracle The address of the LP price oracle used by lending pools
 //
 @view
 func cygnus_nebula_oracle{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}() -> (
@@ -444,8 +450,24 @@ func native_token{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_pt
 @view
 func all_orbiters{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
     orbiter_id: felt
-) -> (orbiter: CygnusOrbiter) {
-    return Orbiters.read(orbiter_id=orbiter_id);
+) -> (
+    initialized: felt,
+    orbiter_id: felt,
+    orbiter_name: felt,
+    albireo_orbiter: felt,
+    deneb_orbiter: felt,
+) {
+    // Get orbiter struct for the orbiter_id
+    let (orbiter: CygnusOrbiter) = Orbiters.read(orbiter_id=orbiter_id);
+
+    // Return values as returning structs since broken since v0.10
+    return (
+        initialized=orbiter.initialized,
+        orbiter_id=orbiter.orbiter_id,
+        orbiter_name=orbiter.orbiter_name,
+        albireo_orbiter=orbiter.albireo_orbiter,
+        deneb_orbiter=orbiter.deneb_orbiter,
+    );
 }
 
 // counter
@@ -480,8 +502,20 @@ func total_shuttles{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_
 @view
 func get_shuttle{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
     lp_token_pair: felt, orbiter_id: felt
-) -> (shuttle: CygnusShuttle) {
-    return Shuttles.read(lp_token_pair=lp_token_pair, orbiter_id=orbiter_id);
+) -> (launched: felt, shuttle_id: felt, borrowable: felt, collateral: felt, orbiter_id: felt) {
+    // Get shuttle from mapping
+    let (shuttle: CygnusShuttle) = Shuttles.read(
+        lp_token_pair=lp_token_pair, orbiter_id=orbiter_id
+    );
+
+    // return Shuttle struct
+    return (
+        launched=shuttle.launched,
+        shuttle_id=shuttle.shuttle_id,
+        borrowable=shuttle.borrowable,
+        collateral=shuttle.collateral,
+        orbiter_id=shuttle.orbiter_id,
+    );
 }
 
 // array all_shuttles[index] = shuttle struct
@@ -494,8 +528,18 @@ func get_shuttle{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr
 @view
 func all_shuttles{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
     shuttle_id: felt
-) -> (shuttle: CygnusShuttle) {
-    return All_Shuttles.read(shuttle_id=shuttle_id);
+) -> (launched: felt, shuttle_id: felt, borrowable: felt, collateral: felt, orbiter_id: felt) {
+    // Read from "array"
+    let (shuttle: CygnusShuttle) = All_Shuttles.read(shuttle_id=shuttle_id);
+
+    // Return values instead of struct since Cairo v0.10.0 broke returning structs
+    return (
+        launched=shuttle.launched,
+        shuttle_id=shuttle.shuttle_id,
+        borrowable=shuttle.borrowable,
+        collateral=shuttle.collateral,
+        orbiter_id=shuttle.orbiter_id,
+    );
 }
 
 // ════════════════════════════════════════════════════════════════════════════════════════════════════════════════════
@@ -590,21 +634,22 @@ func board_shuttle{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_p
         assert new_shuttle.shuttle_id = 0;
     }
 
-    // get the total amount of shuttles deployed up to this point
+    // Get the total amount of shuttles deployed up to this point
     let (new_shuttle_id: felt) = total_shuttles();
 
-    // create lending pool object and just assign the unique ID for now
+    // Create lending pool object and just assign the unique ID for now
     tempvar shuttle = CygnusShuttle(
         launched=0,
         shuttle_id=new_shuttle_id,
         borrowable=0,
         collateral=0,
-        orbiter=orbiter,
+        orbiter_id=orbiter.orbiter_id,
         );
 
+    // Update total deployed lending pools ++
     Total_Shuttles.write(new_shuttle_id + 1);
 
-    // return struct to the deploy function
+    // Return struct to the deploy function
     return (shuttle=shuttle);
 }
 
@@ -634,7 +679,7 @@ func deploy_shuttle{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_
 ) -> (borrowable: felt, collateral: felt) {
     alloc_locals;
 
-    // lock
+    // Lock
     ReentrancyGuard._start();
 
     //
@@ -647,7 +692,7 @@ func deploy_shuttle{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_
 
     // ─────────────────────────────── Phase 1 ───────────────────────────────
 
-    // load orbiter struct to use the deployers
+    // Load orbiter struct to use the deployers
     let (orbiter: CygnusOrbiter) = Orbiters.read(orbiter_id);
 
     //
@@ -660,25 +705,25 @@ func deploy_shuttle{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_
 
     // ─────────────────────────────── Phase 2 ───────────────────────────────
 
-    // create shuttle struct, reverts if LP Token already exists.
+    // Create shuttle struct, reverts if LP Token already exists.
     let (shuttle: CygnusShuttle) = board_shuttle(lp_token_pair, orbiter);
 
     // ─────────────────────────────── Phase 3 ───────────────────────────────
 
-    // deploy collateral and borrowable
+    // Deploy collateral and borrowable
 
     // salt of lp token + factory
     let (salt: felt) = hash2{hash_ptr=pedersen_ptr}(lp_token_pair, address_this());
 
-    // get hash from deployer
+    // Get hash from deployer
     let (collateral_class_hash: felt) = IDenebOrbiter.collateral_class_hash(
         contract_address=orbiter.deneb_orbiter
     );
 
-    // calculate future collateral address
+    // Calculate future collateral address
     let (constructor_calldata: felt*) = alloc();
 
-    // calculate collateral address internallyy
+    // Calculate collateral address internallyy
     let (calculated_collateral: felt) = CygnusAddressLib.calculate_contract_address{
         hash_ptr=pedersen_ptr
     }(salt, collateral_class_hash, 0, constructor_calldata, orbiter.deneb_orbiter);
@@ -713,11 +758,11 @@ func deploy_shuttle{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_
 
     // ─────────────────────────────── Phase 4 ───────────────────────────────
 
-    // get oracle
+    // Get oracle
     let (cygnus_oracle: felt) = Cygnus_Nebula_Oracle.read();
 
-    // check if oracle is initialized for this LP Token, reverts if not initialized on next exec call
-    let (_, oracle_initialized: felt, _, _) = ICygnusNebulaOracle.get_price_oracle(
+    // Check if oracle is initialized for this LP Token, reverts if not initialized on next exec call
+    let (_, oracle_initialized: felt, _, _) = ICygnusNebulaOracle.get_nebula_oracle(
         contract_address=cygnus_oracle, lp_token_pair=lp_token_pair
     );
 
@@ -731,16 +776,16 @@ func deploy_shuttle{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_
 
     // ─────────────────────────────── Phase 5 ───────────────────────────────
 
-    // create temp lending pool object with deployed info
+    // Create temp lending pool object with deployed info
     tempvar shuttle = CygnusShuttle(
         launched=1,
         shuttle_id=shuttle.shuttle_id,
         borrowable=borrowable,
         collateral=collateral,
-        orbiter=orbiter,
+        orbiter_id=orbiter.orbiter_id,
         );
 
-    // write lending pool to Shuttles mapping
+    // Write lending pool to Shuttles mapping
     Shuttles.write(lp_token_pair, orbiter.orbiter_id, shuttle);
 
     // "push" lending pool to Shuttles array
@@ -751,10 +796,10 @@ func deploy_shuttle{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_
     //
     ShuttleDeploy.emit(shuttle);
 
-    // unlock
+    // Unlock
     ReentrancyGuard._end();
 
-    // return deployed contracts addresses
+    // Return deployed contracts addresses
     return (borrowable=borrowable, collateral=collateral);
 }
 
@@ -794,7 +839,6 @@ func initialize_orbiters{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_c
 
     return ();
 }
-
 
 //
 // @notice Admin only 👽

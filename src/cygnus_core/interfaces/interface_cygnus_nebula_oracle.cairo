@@ -26,7 +26,7 @@ namespace ICygnusNebulaOracle {
     func aggregation_mode() -> (aggregation_mode: felt) {
     }
 
-    func get_price_oracle(lp_token_pair: felt) -> (
+    func get_nebula_oracle(lp_token_pair: felt) -> (
         oracle_id: felt, initialized: felt, empiric_key_token0: felt, empiric_key_token1: felt
     ) {
     }
