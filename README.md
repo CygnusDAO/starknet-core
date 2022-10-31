@@ -16,7 +16,7 @@ Borrowable: https://goerli.voyager.online/contract/0x7fc7944fd5179e10bc607aa97cf
 Collateral: https://goerli.voyager.online/contract/0x0105d3c64059e236fc85a2c6279ea7c48d654574b1b35769ed3fc9a8b9424663
 </p>
 
-Example of leverage transaction: https://testnet.starkscan.co/tx/0x0797eeee4d14bc26b203288d8bc21e9fc56955d9d4fedca41f70afb6fdf06839#overview
+Example of leverage transaction between borrowable and collateral: https://testnet.starkscan.co/tx/0x0797eeee4d14bc26b203288d8bc21e9fc56955d9d4fedca41f70afb6fdf06839#overview
 
 # Cygnus Finance
 
