@@ -41,7 +41,7 @@ from starkware.starknet.common.syscalls import deploy
 from src.cygnus_core.utils.context import msg_sender, address_this
 
 // ════════════════════════════════════════════════════════════════════════════════════════════════════════════════════
-//     2. STRUCTS - INTERNAL
+//     1. STRUCTS AND CONSTANTS - INTERNAL
 // ════════════════════════════════════════════════════════════════════════════════════════════════════════════════════
 
 // @custom:struct CollateralParameters Important parameters for the collateral contracts

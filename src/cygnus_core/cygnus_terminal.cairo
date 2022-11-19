@@ -27,7 +27,7 @@
 //
 //     Starknet
 //       │
-//       ├ 1. Structs & Mappings
+//       ├ 1. Structs and Constants
 //       │     └ Internal
 //       ├ 2. Events                    @events                               contract events
 //       ├ 3. Storage                   @storage_vars                         contract state variables

@@ -41,7 +41,7 @@ from starkware.starknet.common.syscalls import deploy
 from src.cygnus_core.utils.context import msg_sender, address_this
 
 // ════════════════════════════════════════════════════════════════════════════════════════════════════════════════════
-//     2. STRUCTS - INTERNAL
+//     1. STRUCTS AND CONSTANTS - INTERNAL
 // ════════════════════════════════════════════════════════════════════════════════════════════════════════════════════
 
 // @custom:struct CollateralParameters Important parameters for the collateral contracts
@@ -78,8 +78,6 @@ func constructor{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr
   Collateral_Class_Hash.write(class_hash);
   return ();
 }
-
-
 
 // ════════════════════════════════════════════════════════════════════════════════════════════════════════════════════
 //     5. STORAGE ACCESSORS - EXTERNAL
